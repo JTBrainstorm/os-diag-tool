@@ -13,11 +13,11 @@ namespace os_collect_stats_win
         private static string _targetZipFile = Path.Combine(Directory.GetCurrentDirectory(), "outsystems_data_" + DateTimeToTimestamp(DateTime.Now) + ".zip");
         private static string _osInstallationFolder = @"c:\Program Files\OutSystems\Platform Server";
         private static string _osLogFolder = Path.Combine(_osInstallationFolder, "logs");
-        private static string _osServerRegistry = @"HKEY_LOCAL_MACHINE\SOFTWARE\OutSystems\Installer\Server";
+        private static string _osServerRegistry = @"SOFTWARE\OutSystems\Installer\Server";
         private static string _SSLProtocolsRegistryPath = @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\Schannel\Protocols";
         private static string _IISRegistryPath = @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\InetStp";
         private static string _NetFrameworkRegistryPath = @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\NET Framework Setup\NDP";
-        private static string _OutSystemsPlatformRegistryPath = @"HKEY_LOCAL_MACHINE\SOFTWARE\OutSystems";
+        private static string _OutSystemsPlatformRegistryPath = @"HKEY_LOCAL_MACHINE\SOFTWARE\OutSystems\";
         private static string _ProjectPath = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.FullName;
 
 
@@ -35,9 +35,9 @@ namespace os_collect_stats_win
             try
             {
                 Console.WriteLine("Finding OutSystems Platform Installation Path...");
-                RegistryKey OSPlatformInstaller = Registry.LocalMachine.OpenSubKey(_osInstallationFolder);
-                _osInstallationFolder = (string) OSPlatformInstaller.GetValue("(Default)");
-                Console.Write("DONE");
+                RegistryKey OSPlatformInstaller = Registry.LocalMachine.OpenSubKey(_osServerRegistry);
+                _osInstallationFolder = (string)OSPlatformInstaller.GetValue("");
+                Console.Write("Found it on: \"{0}\"", _osInstallationFolder);
             }
             catch (Exception e)
             {
