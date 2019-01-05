@@ -12,3 +12,10 @@ C:\Users\jat\Documents\Visual Studio 2015\Projects\os_collect_stats_win\os_colle
 C:\Users\jat\Documents\Visual Studio 2015\Projects\os_collect_stats_win\os_collect_stats_win\bin\Debug\os_collect_stats_win.pdb
 C:\Users\jat\Documents\Visual Studio 2015\Projects\os_collect_stats_win\os_collect_stats_win\bin\Debug\ICSharpCode.SharpZipLib.dll
 C:\Users\jat\Documents\Visual Studio 2015\Projects\os_collect_stats_win\os_collect_stats_win\obj\Debug\os_collect_stats_win.csprojResolveAssemblyReference.cache
+C:\Users\fcb\Desktop\Tools\os-diag-tool-master\os-diag-tool-master\os_collect_stats_win\bin\Debug\os_collect_stats_win.exe.config
+C:\Users\fcb\Desktop\Tools\os-diag-tool-master\os-diag-tool-master\os_collect_stats_win\obj\Debug\os_collect_stats_win.exe
+C:\Users\fcb\Desktop\Tools\os-diag-tool-master\os-diag-tool-master\os_collect_stats_win\obj\Debug\os_collect_stats_win.pdb
+C:\Users\fcb\Desktop\Tools\os-diag-tool-master\os-diag-tool-master\os_collect_stats_win\obj\Debug\os_collect_stats_win.csprojResolveAssemblyReference.cache
+C:\Users\fcb\Desktop\Tools\os-diag-tool-master\os-diag-tool-master\os_collect_stats_win\bin\Debug\os_collect_stats_win.exe
+C:\Users\fcb\Desktop\Tools\os-diag-tool-master\os-diag-tool-master\os_collect_stats_win\bin\Debug\os_collect_stats_win.pdb
+C:\Users\fcb\Desktop\Tools\os-diag-tool-master\os-diag-tool-master\os_collect_stats_win\bin\Debug\ICSharpCode.SharpZipLib.dll

@@ -11,9 +11,13 @@ namespace os_collect_stats_win
     {
         private static string _tempFolderPath = Path.Combine(Directory.GetCurrentDirectory(),"collect_stats"); 
         private static string _targetZipFile = Path.Combine(Directory.GetCurrentDirectory(), "outsystems_data_" + DateTimeToTimestamp(DateTime.Now) + ".zip");
-        private static string _osIntallationFolder = @"c:\Program Files\OutSystems\Platform Server";
-        private static string _osLogFolder = Path.Combine(_osIntallationFolder, "logs");
+        private static string _osInstallationFolder = @"c:\Program Files\OutSystems\Platform Server";
+        private static string _osLogFolder = Path.Combine(_osInstallationFolder, "logs");
         private static string _osServerRegistry = @"HKEY_LOCAL_MACHINE\SOFTWARE\OutSystems\Installer\Server";
+        private static string _SSLProtocolsRegistryPath = @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\Schannel\Protocols";
+        private static string _NetFrameworkRegistryPath = @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\NET Framework Setup\NDP";
+        private static string _OutSystemsPlatformRegistryPath = @"HKEY_LOCAL_MACHINE\SOFTWARE\OutSystems";
+        private static string _ProjectPath = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.FullName;
 
 
         static void Main(string[] args)
@@ -26,13 +30,28 @@ namespace os_collect_stats_win
             CmdHelper cmdHelper = new CmdHelper();
             WindowsEventLogHelper welHelper = new WindowsEventLogHelper();
 
-            // TODO: check if osInstallationFolder exists. If it doesn't, search for it in other places
-            if(!Directory.Exists(_osIntallationFolder))
+            // Finding Installation folder
+            try
             {
-               // _osIntallationFolder = (string) Registry.GetValue(_osServerRegistry, "", "");
+                Console.WriteLine("Finding OutSystems Platform Installation Path...");
+                RegistryKey OSPlatformInstaller = Registry.LocalMachine.OpenSubKey(_osInstallationFolder);
+                _osInstallationFolder = (string) OSPlatformInstaller.GetValue("(Default)");
+                Console.Write("DONE");
             }
-            //string df = (string) Registry.GetValue(_osServerRegistry, "", "");
+            catch (Exception e)
+            {
+                //TODO: If the Platform is not installed, the script should exit its execution...
+                Console.Write(" * Unable to find OutSystems Platform Server Installation... * ");
+            }
 
+            // TAVARES, check if this is deprecated. The above method already gets the Installation folder
+            //------------------------------------------------------------------------------------------------------------------
+            //if(!Directory.Exists(_osIntallationFolder))
+            //{
+               // _osIntallationFolder = (string) Registry.GetValue(_osServerRegistry, "", "");
+            //}
+            //string df = (string) Registry.GetValue(_osServerRegistry, "", "");
+            //------------------------------------------------------------------------------------------------------------------
             // Delete temporary directory and all contents if it already exists (e.g.: error runs)
             if (Directory.Exists(_tempFolderPath))
             {
@@ -85,7 +104,7 @@ namespace os_collect_stats_win
 
             // Initialize dictionary with all the files that we need to get and can be accessed directly
             IDictionary<string, string> files = new Dictionary<string, string> {
-                { "HSConf", Path.Combine(_osIntallationFolder, "server.hsconf") }
+                { "HSConf", Path.Combine(_osInstallationFolder, "server.hsconf") }
             };
 
             // Add OS log and configuration files
@@ -95,7 +114,7 @@ namespace os_collect_stats_win
                 files.Add(serviceFileEntry.Value + " log", Path.Combine(_osLogFolder, serviceFileEntry.Key + ".log"));
 
                 // Add properties file
-                files.Add(serviceFileEntry.Value + " config", Path.Combine(_osIntallationFolder, serviceFileEntry.Key + ".exe.config"));
+                files.Add(serviceFileEntry.Value + " config", Path.Combine(_osInstallationFolder, serviceFileEntry.Key + ".exe.config"));
             }
 
             // Copy all files to the temporary folder
@@ -123,7 +142,7 @@ namespace os_collect_stats_win
         {
             IDictionary<string, CmdLineCommand> commands = new Dictionary<string, CmdLineCommand>
             {
-                { "dir_outsystems", new CmdLineCommand(string.Format("dir /s /a \"{0}\"", _osIntallationFolder),Path.Combine(_tempFolderPath, "dir_outsystems")) },
+                { "dir_outsystems", new CmdLineCommand(string.Format("dir /s /a \"{0}\"", _osInstallationFolder),Path.Combine(_tempFolderPath, "dir_outsystems")) },
                 { "tasklist", new CmdLineCommand("tasklist /v",Path.Combine(_tempFolderPath, "tasklist")) },
                 { "cpu_info", new CmdLineCommand("wmic cpu",Path.Combine(_tempFolderPath, "cpu_info")) },
                 { "memory_info", new CmdLineCommand("wmic memphysical",Path.Combine(_tempFolderPath, "mem_info")) },
@@ -133,7 +152,10 @@ namespace os_collect_stats_win
                 { "os_info", new CmdLineCommand("wmic os",Path.Combine(_tempFolderPath, "os_info")) },
                 { "pagefile", new CmdLineCommand("wmic pagefile",Path.Combine(_tempFolderPath, "pagefile")) },
                 { "partition", new CmdLineCommand("wmic partition",Path.Combine(_tempFolderPath, "partition")) },
-                { "startup", new CmdLineCommand("wmic startup",Path.Combine(_tempFolderPath, "startup")) }
+                { "startup", new CmdLineCommand("wmic startup",Path.Combine(_tempFolderPath, "startup")) },
+                { "NetFramework", new CmdLineCommand(_ProjectPath + ".\\ExportRegistry.bat " + "\"" + _NetFrameworkRegistryPath + "\" " + Path.Combine(_tempFolderPath, "NetFrameworkVersion.txt")) },
+                { "OutSystems_Info", new CmdLineCommand(_ProjectPath + ".\\ExportRegistry.bat " + "\"" + _OutSystemsPlatformRegistryPath + "\" " + Path.Combine(_tempFolderPath, "OutSystemsPlatform.txt")) },
+                { "SSLProtocols", new CmdLineCommand(_ProjectPath + ".\\ExportRegistry.bat " + "\"" + _SSLProtocolsRegistryPath + "\" " + Path.Combine(_tempFolderPath, "SSLProtocols.txt")) }
             };
 
             foreach (KeyValuePair<string, CmdLineCommand> commandEntry in commands)
