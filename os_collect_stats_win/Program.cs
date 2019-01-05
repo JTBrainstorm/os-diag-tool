@@ -15,6 +15,7 @@ namespace os_collect_stats_win
         private static string _osLogFolder = Path.Combine(_osInstallationFolder, "logs");
         private static string _osServerRegistry = @"HKEY_LOCAL_MACHINE\SOFTWARE\OutSystems\Installer\Server";
         private static string _SSLProtocolsRegistryPath = @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\Schannel\Protocols";
+        private static string _IISRegistryPath = @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\InetStp";
         private static string _NetFrameworkRegistryPath = @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\NET Framework Setup\NDP";
         private static string _OutSystemsPlatformRegistryPath = @"HKEY_LOCAL_MACHINE\SOFTWARE\OutSystems";
         private static string _ProjectPath = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.FullName;
@@ -80,7 +81,9 @@ namespace os_collect_stats_win
             // Delete temp folder
             Directory.Delete(_tempFolderPath, true);
 
-            //TODO: Get IIS version
+            //TODO: Get IIS access logs
+            
+
             //TODO: memdump
 
             // Print process end
@@ -155,12 +158,13 @@ namespace os_collect_stats_win
                 { "startup", new CmdLineCommand("wmic startup",Path.Combine(_tempFolderPath, "startup")) },
                 { "NetFramework", new CmdLineCommand(_ProjectPath + ".\\ExportRegistry.bat " + "\"" + _NetFrameworkRegistryPath + "\" " + Path.Combine(_tempFolderPath, "NetFrameworkVersion.txt")) },
                 { "OutSystems_Info", new CmdLineCommand(_ProjectPath + ".\\ExportRegistry.bat " + "\"" + _OutSystemsPlatformRegistryPath + "\" " + Path.Combine(_tempFolderPath, "OutSystemsPlatform.txt")) },
-                { "SSLProtocols", new CmdLineCommand(_ProjectPath + ".\\ExportRegistry.bat " + "\"" + _SSLProtocolsRegistryPath + "\" " + Path.Combine(_tempFolderPath, "SSLProtocols.txt")) }
+                { "SSLProtocols", new CmdLineCommand(_ProjectPath + ".\\ExportRegistry.bat " + "\"" + _SSLProtocolsRegistryPath + "\" " + Path.Combine(_tempFolderPath, "SSLProtocols.txt")) },
+                { "IISVersion", new CmdLineCommand(_ProjectPath + ".\\ExportRegistry.bat " + "\"" + _IISRegistryPath + "\" " + Path.Combine(_tempFolderPath, "IISVersion.txt")) }
             };
 
             foreach (KeyValuePair<string, CmdLineCommand> commandEntry in commands)
             {
-                Console.Write("Getting {0}... ", commandEntry.Key);
+                Console.Write("Getting {0}...", commandEntry.Key);
                 commandEntry.Value.Execute();
                 Console.WriteLine("DONE");
             }
