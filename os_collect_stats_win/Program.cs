@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Microsoft.Win32;
+using System.Xml.Linq;
+using System.Linq;
 
 namespace os_collect_stats_win
 {
@@ -18,6 +20,7 @@ namespace os_collect_stats_win
         private static string _IISRegistryPath = @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\InetStp";
         private static string _NetFrameworkRegistryPath = @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\NET Framework Setup\NDP";
         private static string _OutSystemsPlatformRegistryPath = @"HKEY_LOCAL_MACHINE\SOFTWARE\OutSystems\";
+        private static string _IISApplicationHostPath = @"C:\Windows\System32\inetsrv\config\applicationHost.config";
         private static string _ProjectPath = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.FullName;
 
 
@@ -36,6 +39,7 @@ namespace os_collect_stats_win
             {
                 Console.WriteLine("Finding OutSystems Platform Installation Path...");
                 RegistryKey OSPlatformInstaller = Registry.LocalMachine.OpenSubKey(_osServerRegistry);
+                Console.Write(OSPlatformInstaller.GetValueNames());
                 _osInstallationFolder = (string)OSPlatformInstaller.GetValue("");
                 Console.Write("Found it on: \"{0}\"", _osInstallationFolder);
             }
@@ -47,14 +51,6 @@ namespace os_collect_stats_win
             Object obj;
             getRegistryKey(_osServerRegistry, "", out obj); // The "Defaut" values are empties strings.
 
-            // TAVARES, check if this is deprecated. The above method already gets the Installation folder
-            //------------------------------------------------------------------------------------------------------------------
-            //if(!Directory.Exists(_osIntallationFolder))
-            //{
-            // _osIntallationFolder = (string) Registry.GetValue(_osServerRegistry, "", "");
-            //}
-            //string df = (string) Registry.GetValue(_osServerRegistry, "", "");
-            //------------------------------------------------------------------------------------------------------------------
             // Delete temporary directory and all contents if it already exists (e.g.: error runs)
             if (Directory.Exists(_tempFolderPath))
             {
@@ -72,6 +68,40 @@ namespace os_collect_stats_win
             welHelper.GenerateLogFiles(_tempFolderPath);
             Console.WriteLine("DONE");
 
+            //TODO: Get IIS access logs -- WORK IN PROGRESS
+            // For some reason, it's retrieving the correct path on my machine, but fails on a sandbox
+            try
+            {
+                // Loading Xml text from the file
+                Console.WriteLine("0");
+                // On a sandbox, it's failing on the step XDocument.Load... Not sure why
+                var XmlString = XDocument.Load(_IISApplicationHostPath);
+                Console.WriteLine("1");
+
+                // Querying the data and finding the Access logs path
+                var query = from p in XmlString.Descendants("siteDefaults")
+                            select new
+                            {
+                                LogsFilePath = p.Element("logFile").Attribute("directory").Value,
+                            };
+
+                string IISAccessLogsPath = query.First().LogsFilePath;
+
+                // NOT TESTED YET---------------------
+                // Copying the contents from the Access logs path
+                //foreach (string SrcDir in Directory.GetDirectories(IISAccessLogsPath, "*", SearchOption.AllDirectories))
+                // Directory.CreateDirectory(_tempFolderPath);
+
+                // foreach (string DestDir in Directory.GetFiles(IISAccessLogsPath, "*", SearchOption.AllDirectories))
+                // File.Copy(_tempFolderPath, DestDir.Replace(IISAccessLogsPath, _tempFolderPath), true);
+                //---------------------------------------------------------------------------------
+                Console.WriteLine("Retrieved IIS Access logs:");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Attempted to retrieve IIS Access logs but failed...");
+            }
+
             ExecuteCommands();
 
             // Generate zip file
@@ -83,7 +113,6 @@ namespace os_collect_stats_win
             // Delete temp folder
             Directory.Delete(_tempFolderPath, true);
 
-            //TODO: Get IIS access logs
             
 
             //TODO: memdump
