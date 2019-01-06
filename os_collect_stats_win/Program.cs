@@ -69,37 +69,30 @@ namespace os_collect_stats_win
             Console.WriteLine("DONE");
 
             //TODO: Get IIS access logs -- WORK IN PROGRESS
-            // For some reason, it's retrieving the correct path on my machine, but fails on a sandbox
             try
             {
-                // Loading Xml text from the file
-                Console.WriteLine("0");
-                // On a sandbox, it's failing on the step XDocument.Load... Not sure why
-                var XmlString = XDocument.Load(_IISApplicationHostPath);
-                Console.WriteLine("1");
+                // Loading Xml text from the file. Note: Build must be in 64bit. More info: https://stackoverflow.com/questions/38316427/filenotfound-when-reading-the-iis-applicationhost-config-file
+                var xmlString = XDocument.Load(_IISApplicationHostPath);
 
                 // Querying the data and finding the Access logs path
-                var query = from p in XmlString.Descendants("siteDefaults")
+                var query = from p in xmlString.Descendants("siteDefaults")
                             select new
                             {
                                 LogsFilePath = p.Element("logFile").Attribute("directory").Value,
                             };
+                
+                string iisAccessLogsPath = query.First().LogsFilePath;
 
-                string IISAccessLogsPath = query.First().LogsFilePath;
-
-                // NOT TESTED YET---------------------
+                // TODO: Copy all the contents from the path iisAcessLogsPath, including contents in subfolder 
                 // Copying the contents from the Access logs path
-                //foreach (string SrcDir in Directory.GetDirectories(IISAccessLogsPath, "*", SearchOption.AllDirectories))
-                // Directory.CreateDirectory(_tempFolderPath);
 
-                // foreach (string DestDir in Directory.GetFiles(IISAccessLogsPath, "*", SearchOption.AllDirectories))
-                // File.Copy(_tempFolderPath, DestDir.Replace(IISAccessLogsPath, _tempFolderPath), true);
+
                 //---------------------------------------------------------------------------------
                 Console.WriteLine("Retrieved IIS Access logs:");
             }
             catch (Exception e)
             {
-                Console.WriteLine("Attempted to retrieve IIS Access logs but failed...");
+                Console.WriteLine("Attempted to retrieve IIS Access logs but failed..." + e.Message);
             }
 
             ExecuteCommands();
