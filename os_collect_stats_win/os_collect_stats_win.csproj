@@ -46,6 +46,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Registry.cs" />
     <Compile Include="CmdHelper.cs" />
     <Compile Include="CmdLineCommand.cs" />
     <Compile Include="FileSystemHelper.cs" />

@@ -19,3 +19,10 @@ C:\Users\fcb\Desktop\Tools\os-diag-tool-master\os-diag-tool-master\os_collect_st
 C:\Users\fcb\Desktop\Tools\os-diag-tool-master\os-diag-tool-master\os_collect_stats_win\bin\Debug\os_collect_stats_win.exe
 C:\Users\fcb\Desktop\Tools\os-diag-tool-master\os-diag-tool-master\os_collect_stats_win\bin\Debug\os_collect_stats_win.pdb
 C:\Users\fcb\Desktop\Tools\os-diag-tool-master\os-diag-tool-master\os_collect_stats_win\bin\Debug\ICSharpCode.SharpZipLib.dll
+C:\Users\jat\Source\Repos\os-diag-tool\os_collect_stats_win\bin\Debug\os_collect_stats_win.exe.config
+C:\Users\jat\Source\Repos\os-diag-tool\os_collect_stats_win\bin\Debug\os_collect_stats_win.exe
+C:\Users\jat\Source\Repos\os-diag-tool\os_collect_stats_win\bin\Debug\os_collect_stats_win.pdb
+C:\Users\jat\Source\Repos\os-diag-tool\os_collect_stats_win\bin\Debug\ICSharpCode.SharpZipLib.dll
+C:\Users\jat\Source\Repos\os-diag-tool\os_collect_stats_win\obj\Debug\os_collect_stats_win.csprojResolveAssemblyReference.cache
+C:\Users\jat\Source\Repos\os-diag-tool\os_collect_stats_win\obj\Debug\os_collect_stats_win.exe
+C:\Users\jat\Source\Repos\os-diag-tool\os_collect_stats_win\obj\Debug\os_collect_stats_win.pdb

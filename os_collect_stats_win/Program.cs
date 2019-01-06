@@ -38,18 +38,19 @@ namespace os_collect_stats_win
             try
             {
                 Console.WriteLine("Finding OutSystems Platform Installation Path...");
-                RegistryKey OSPlatformInstaller = Registry.LocalMachine.OpenSubKey(_osServerRegistry);
+                RegistryKey OSPlatformInstaller = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(_osServerRegistry);
                 Console.Write(OSPlatformInstaller.GetValueNames());
-                _osInstallationFolder = (string)OSPlatformInstaller.GetValue("");
+                _osInstallationFolder = (string) OSPlatformInstaller.GetValue("");
                 Console.Write("Found it on: \"{0}\"", _osInstallationFolder);
             }
             catch (Exception e)
             {
-                //TODO: If the Platform is not installed, the script should exit its execution...
-                Console.Write(" * Unable to find OutSystems Platform Server Installation... * ");
+                Console.WriteLine(" * Unable to find OutSystems Platform Server Installation... * ");
+                WriteExitLines();
+                return;
             }
-            Object obj;
-            getRegistryKey(_osServerRegistry, "", out obj); // The "Defaut" values are empties strings.
+
+            Object obj = Registry.GetRegistryValue(_osServerRegistry, ""); // The "Defaut" values are empty strings.
 
             // Delete temporary directory and all contents if it already exists (e.g.: error runs)
             if (Directory.Exists(_tempFolderPath))
@@ -119,28 +120,14 @@ namespace os_collect_stats_win
 
             // Print process end
             PrintEnd();
-
-            Console.WriteLine("Press any key to exit.");
-            Console.ReadKey();
+            WriteExitLines();
         }
 
-        public static void getRegistryKey(string sKey, string sValue, out Object obj)
+        // write a generic exit line and wait for user input
+        private static void WriteExitLines()
         {
-            obj = null;
-            try
-            {
-                using (RegistryKey key = Registry.LocalMachine.OpenSubKey(sKey))
-                {
-                    if (key != null)
-                    {
-                        obj = key.GetValue(sValue);
-                    }
-                }
-            }
-            catch (Exception ex)  //just for demonstration...it's always best to handle specific exceptions
-            {
-                Console.Write("Cannot find key {0}. {1}", sKey, ex.Message );
-            }
+            Console.WriteLine("Press any key to exit.");
+            Console.ReadKey();
         }
 
         private static void CopyAllFiles()
@@ -157,7 +144,7 @@ namespace os_collect_stats_win
 
             // Initialize dictionary with all the files that we need to get and can be accessed directly
             IDictionary<string, string> files = new Dictionary<string, string> {
-                { "HSConf", Path.Combine(_osInstallationFolder, "server.hsconf") }
+                { "ServerHSConf", Path.Combine(_osInstallationFolder, "server.hsconf") }
             };
 
             // Add OS log and configuration files
