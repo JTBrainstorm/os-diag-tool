@@ -44,12 +44,14 @@ namespace os_collect_stats_win
                 //TODO: If the Platform is not installed, the script should exit its execution...
                 Console.Write(" * Unable to find OutSystems Platform Server Installation... * ");
             }
+            Object obj;
+            getRegistryKey(_osServerRegistry, "", out obj); // The "Defaut" values are empties strings.
 
             // TAVARES, check if this is deprecated. The above method already gets the Installation folder
             //------------------------------------------------------------------------------------------------------------------
             //if(!Directory.Exists(_osIntallationFolder))
             //{
-               // _osIntallationFolder = (string) Registry.GetValue(_osServerRegistry, "", "");
+            // _osIntallationFolder = (string) Registry.GetValue(_osServerRegistry, "", "");
             //}
             //string df = (string) Registry.GetValue(_osServerRegistry, "", "");
             //------------------------------------------------------------------------------------------------------------------
@@ -91,6 +93,25 @@ namespace os_collect_stats_win
 
             Console.WriteLine("Press any key to exit.");
             Console.ReadKey();
+        }
+
+        public static void getRegistryKey(string sKey, string sValue, out Object obj)
+        {
+            obj = null;
+            try
+            {
+                using (RegistryKey key = Registry.LocalMachine.OpenSubKey(sKey))
+                {
+                    if (key != null)
+                    {
+                        obj = key.GetValue(sValue);
+                    }
+                }
+            }
+            catch (Exception ex)  //just for demonstration...it's always best to handle specific exceptions
+            {
+                Console.Write("Cannot find key {0}. {1}", sKey, ex.Message );
+            }
         }
 
         private static void CopyAllFiles()
