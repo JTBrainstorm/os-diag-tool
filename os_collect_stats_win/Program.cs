@@ -14,14 +14,13 @@ namespace os_collect_stats_win
         private static string _tempFolderPath = Path.Combine(Directory.GetCurrentDirectory(),"collect_stats"); 
         private static string _targetZipFile = Path.Combine(Directory.GetCurrentDirectory(), "outsystems_data_" + DateTimeToTimestamp(DateTime.Now) + ".zip");
         private static string _osInstallationFolder = @"c:\Program Files\OutSystems\Platform Server";
-        private static string _osLogFolder = Path.Combine(_osInstallationFolder, "logs");
+        //private static string _osLogFolder = Path.Combine(_osInstallationFolder, "logs");
         private static string _osServerRegistry = @"SOFTWARE\OutSystems\Installer\Server";
         private static string _SSLProtocolsRegistryPath = @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecurityProviders\Schannel\Protocols";
         private static string _IISRegistryPath = @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\InetStp";
         private static string _NetFrameworkRegistryPath = @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\NET Framework Setup\NDP";
-        private static string _OutSystemsPlatformRegistryPath = @"HKEY_LOCAL_MACHINE\SOFTWARE\OutSystems\";
+        private static string _OutSystemsPlatformRegistryPath = @"HKEY_LOCAL_MACHINE\SOFTWARE\OutSystems";
         private static string _IISApplicationHostPath = @"C:\Windows\System32\inetsrv\config\applicationHost.config";
-        private static string _ProjectPath = Directory.GetParent(Directory.GetCurrentDirectory()).Parent.FullName;
 
 
         static void Main(string[] args)
@@ -39,13 +38,14 @@ namespace os_collect_stats_win
             {
                 Console.WriteLine("Finding OutSystems Platform Installation Path...");
                 RegistryKey OSPlatformInstaller = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(_osServerRegistry);
-                Console.Write(OSPlatformInstaller.GetValueNames());
+                
                 _osInstallationFolder = (string) OSPlatformInstaller.GetValue("");
-                Console.Write("Found it on: \"{0}\"", _osInstallationFolder);
+                Console.WriteLine("Found it on: \"{0}\"", _osInstallationFolder);
             }
             catch (Exception e)
             {
                 Console.WriteLine(" * Unable to find OutSystems Platform Server Installation... * ");
+                Console.WriteLine(e.ToString());
                 WriteExitLines();
                 return;
             }
@@ -130,24 +130,31 @@ namespace os_collect_stats_win
                 { "ConfigurationTool", "Configuration Tool" },
                 { "LogServer", "Log Service" },
                 { "CompilerService", "Deployment Controller Service" },
-                { "DeploymentService", "Deployment Service" },
+                { "DeployService", "Deployment Service" },
                 { "Scheduler", "Scheduler Service" },
                 { "SMSConnector", "SMS Service" }
             };
 
             // Initialize dictionary with all the files that we need to get and can be accessed directly
             IDictionary<string, string> files = new Dictionary<string, string> {
-                { "ServerHSConf", Path.Combine(_osInstallationFolder, "server.hsconf") }
+                { "ServerHSConf", Path.Combine(_osInstallationFolder, "server.hsconf") },
+                { "OSVersion", Path.Combine(_osInstallationFolder, "version.txt") }
             };
 
             // Add OS log and configuration files
             foreach (KeyValuePair<string, string> serviceFileEntry in osServiceNames)
             {
-                // Add log file
-                files.Add(serviceFileEntry.Value + " log", Path.Combine(_osLogFolder, serviceFileEntry.Key + ".log"));
+                string confFilePath = Path.Combine(_osInstallationFolder, serviceFileEntry.Key + ".exe.config");
+
+                // Get log file location from conf file
+                OSServiceConfigFileParser confParser = new OSServiceConfigFileParser(serviceFileEntry.Value, confFilePath);
+                string logPath = confParser.LogFilePath;
 
                 // Add properties file
-                files.Add(serviceFileEntry.Value + " config", Path.Combine(_osInstallationFolder, serviceFileEntry.Key + ".exe.config"));
+                files.Add(serviceFileEntry.Value + " config", confFilePath);
+
+                // Add log file
+                files.Add(serviceFileEntry.Value + " log", logPath);
             }
 
             // Copy all files to the temporary folder
@@ -186,10 +193,10 @@ namespace os_collect_stats_win
                 { "pagefile", new CmdLineCommand("wmic pagefile",Path.Combine(_tempFolderPath, "pagefile")) },
                 { "partition", new CmdLineCommand("wmic partition",Path.Combine(_tempFolderPath, "partition")) },
                 { "startup", new CmdLineCommand("wmic startup",Path.Combine(_tempFolderPath, "startup")) },
-                { "NetFramework", new CmdLineCommand(_ProjectPath + ".\\ExportRegistry.bat " + "\"" + _NetFrameworkRegistryPath + "\" " + Path.Combine(_tempFolderPath, "NetFrameworkVersion.txt")) },
-                { "OutSystems_Info", new CmdLineCommand(_ProjectPath + ".\\ExportRegistry.bat " + "\"" + _OutSystemsPlatformRegistryPath + "\" " + Path.Combine(_tempFolderPath, "OutSystemsPlatform.txt")) },
-                { "SSLProtocols", new CmdLineCommand(_ProjectPath + ".\\ExportRegistry.bat " + "\"" + _SSLProtocolsRegistryPath + "\" " + Path.Combine(_tempFolderPath, "SSLProtocols.txt")) },
-                { "IISVersion", new CmdLineCommand(_ProjectPath + ".\\ExportRegistry.bat " + "\"" + _IISRegistryPath + "\" " + Path.Combine(_tempFolderPath, "IISVersion.txt")) }
+                { "NetFramework", new CmdLineCommand("ExportRegistry.bat " + "\"" + _NetFrameworkRegistryPath + "\" " + Path.Combine(_tempFolderPath, "NetFrameworkVersion.txt")) },
+                { "OutSystems_Info", new CmdLineCommand("ExportRegistry.bat " + "\"" + _OutSystemsPlatformRegistryPath + "\" " + Path.Combine(_tempFolderPath, "OutSystemsPlatform.txt")) },
+                { "SSLProtocols", new CmdLineCommand("ExportRegistry.bat " + "\"" + _SSLProtocolsRegistryPath + "\" " + Path.Combine(_tempFolderPath, "SSLProtocols.txt")) },
+                { "IISVersion", new CmdLineCommand("ExportRegistry.bat " + "\"" + _IISRegistryPath + "\" " + Path.Combine(_tempFolderPath, "IISVersion.txt")) }
             };
 
             foreach (KeyValuePair<string, CmdLineCommand> commandEntry in commands)
