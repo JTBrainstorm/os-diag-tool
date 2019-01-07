@@ -21,6 +21,7 @@ namespace os_collect_stats_win
         private static string _NetFrameworkRegistryPath = @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\NET Framework Setup\NDP";
         private static string _OutSystemsPlatformRegistryPath = @"HKEY_LOCAL_MACHINE\SOFTWARE\OutSystems";
         private static string _IISApplicationHostPath = @"C:\Windows\System32\inetsrv\config\applicationHost.config";
+        private static string _machineConfigPath = @"C:\Windows\Microsoft.NET\Framework64\v4.0.30319\CONFIG\machine.config";
 
 
         static void Main(string[] args)
@@ -138,7 +139,9 @@ namespace os_collect_stats_win
             // Initialize dictionary with all the files that we need to get and can be accessed directly
             IDictionary<string, string> files = new Dictionary<string, string> {
                 { "ServerHSConf", Path.Combine(_osInstallationFolder, "server.hsconf") },
-                { "OSVersion", Path.Combine(_osInstallationFolder, "version.txt") }
+                { "OSVersion", Path.Combine(_osInstallationFolder, "version.txt") },
+                { "applicationHost.config", _IISApplicationHostPath },
+                { "machine.config", _machineConfigPath }
             };
 
             // Add OS log and configuration files
