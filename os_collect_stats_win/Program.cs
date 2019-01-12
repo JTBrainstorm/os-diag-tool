@@ -11,6 +11,7 @@ namespace os_collect_stats_win
 {
     class Program
     {
+        private static string _windir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
         private static string _tempFolderPath = Path.Combine(Directory.GetCurrentDirectory(),"collect_stats"); 
         private static string _targetZipFile = Path.Combine(Directory.GetCurrentDirectory(), "outsystems_data_" + DateTimeToTimestamp(DateTime.Now) + ".zip");
         private static string _osInstallationFolder = @"c:\Program Files\OutSystems\Platform Server";
@@ -20,8 +21,8 @@ namespace os_collect_stats_win
         private static string _IISRegistryPath = @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\InetStp";
         private static string _NetFrameworkRegistryPath = @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\NET Framework Setup\NDP";
         private static string _OutSystemsPlatformRegistryPath = @"HKEY_LOCAL_MACHINE\SOFTWARE\OutSystems";
-        private static string _iisApplicationHostPath = @"C:\Windows\system32\inetsrv\config\applicationHost.config";
-        private static string _machineConfigPath = @"C:\Windows\Microsoft.NET\Framework64\v4.0.30319\CONFIG\machine.config";
+        private static string _iisApplicationHostPath = Path.Combine(_windir, @"system32\inetsrv\config\applicationHost.config");
+        private static string _machineConfigPath = Path.Combine(_windir, @"Microsoft.NET\Framework64\v4.0.30319\CONFIG\machine.config");
 
 
         static void Main(string[] args)
