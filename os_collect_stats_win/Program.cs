@@ -20,7 +20,7 @@ namespace os_collect_stats_win
         private static string _IISRegistryPath = @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\InetStp";
         private static string _NetFrameworkRegistryPath = @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\NET Framework Setup\NDP";
         private static string _OutSystemsPlatformRegistryPath = @"HKEY_LOCAL_MACHINE\SOFTWARE\OutSystems";
-        private static string _IISApplicationHostPath = @"C:\Windows\System32\inetsrv\config\applicationHost.config";
+        private static string _iisApplicationHostPath = @"C:\Windows\system32\inetsrv\config\applicationHost.config";
         private static string _machineConfigPath = @"C:\Windows\Microsoft.NET\Framework64\v4.0.30319\CONFIG\machine.config";
 
 
@@ -70,11 +70,15 @@ namespace os_collect_stats_win
             welHelper.GenerateLogFiles(_tempFolderPath);
             Console.WriteLine("DONE");
 
-            //TODO: Get IIS access logs -- WORK IN PROGRESS
+            //Retrieving IIS access logs
             try
             {
-                // Loading Xml text from the file. Note: Build must be in 64bit. More info: https://stackoverflow.com/questions/38316427/filenotfound-when-reading-the-iis-applicationhost-config-file
-                var xmlString = XDocument.Load(_IISApplicationHostPath);
+                // Loading Xml text from the file. Note: 32 bit processes will redirect \System32 to \SysWOW64: http://www.samlogic.net/articles/sysnative-folder-64-bit-windows.htm
+                if (Environment.Is64BitOperatingSystem == true)
+                {
+                    _iisApplicationHostPath = _iisApplicationHostPath.Replace("system32", "Sysnative");
+                }
+                var xmlString = XDocument.Load(_iisApplicationHostPath);
 
                 // Querying the data and finding the Access logs path
                 var query = from p in xmlString.Descendants("siteDefaults")
@@ -83,14 +87,21 @@ namespace os_collect_stats_win
                                 LogsFilePath = p.Element("logFile").Attribute("directory").Value,
                             };
                 
-                string iisAccessLogsPath = query.First().LogsFilePath;
+                string iisAccessLogsPath = query.First().LogsFilePath.ToLower();
 
-                // TODO: Copy all the contents from the path iisAcessLogsPath, including contents in subfolder 
-                // Copying the contents from the Access logs path
+                if (iisAccessLogsPath.Contains("%systemdrive%"))
+                {
+                    iisAccessLogsPath = iisAccessLogsPath.Replace("%systemdrive%\\", Path.GetPathRoot(Environment.SystemDirectory));
+                    if ((Environment.Is64BitOperatingSystem == true) && iisAccessLogsPath.Contains("system32"))
+                    {
+                        iisAccessLogsPath = iisAccessLogsPath.Replace("system32", "Sysnative");
+                    }
+                }
 
-
-                //---------------------------------------------------------------------------------
-                Console.WriteLine("Retrieved IIS Access logs:");
+                //Copies all the contents from the path iisAcessLogsPath, including contents in subfolder
+                fsHelper.DirectoryCopy(iisAccessLogsPath, Path.Combine(_tempFolderPath, "IISAccessLogs"), true);
+                
+                Console.WriteLine("Retrieved IIS Access logs");
             }
             catch (Exception e)
             {
@@ -140,7 +151,7 @@ namespace os_collect_stats_win
             IDictionary<string, string> files = new Dictionary<string, string> {
                 { "ServerHSConf", Path.Combine(_osInstallationFolder, "server.hsconf") },
                 { "OSVersion", Path.Combine(_osInstallationFolder, "version.txt") },
-                { "applicationHost.config", _IISApplicationHostPath },
+                { "applicationHost.config", _iisApplicationHostPath },
                 { "machine.config", _machineConfigPath }
             };
 
