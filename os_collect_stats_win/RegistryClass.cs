@@ -33,7 +33,7 @@ namespace os_collect_stats_win
             return obj;
         }
 
-        public static void RegistryCopy(string registryPath, string destPath, bool getSubKeys, bool isRootCall = false)
+        public static void RegistryCopy(string registryPath, string destPath, bool getSubKeys, bool isRootCall = true)
         {
             if (isRootCall)
             {
@@ -74,7 +74,7 @@ namespace os_collect_stats_win
                     // Cycles each subkey registry path and calls itself recursively
                     foreach (string subkeyFullPath in subkeysFullPaths)
                     {
-                        RegistryCopy(subkeyFullPath, destPath, true);
+                        RegistryCopy(subkeyFullPath, destPath, true, false);
                     }
                 }
             }

@@ -48,8 +48,8 @@ namespace os_collect_stats_win
             {
                 Console.WriteLine(" * Unable to find OutSystems Platform Server Installation... * ");
                 Console.WriteLine(e.ToString());
-                WriteExitLines();
-                return;
+                //WriteExitLines();
+                //return;
             }
 
             Object obj = RegistryClass.GetRegistryValue(_osServerRegistry, ""); // The "Defaut" values are empty strings.
@@ -74,6 +74,7 @@ namespace os_collect_stats_win
             //Retrieving IIS access logs
             try
             {
+                Console.WriteLine("Retrieving IIS Access logs... ");
                 // Loading Xml text from the file. Note: 32 bit processes will redirect \System32 to \SysWOW64: http://www.samlogic.net/articles/sysnative-folder-64-bit-windows.htm
                 if (Environment.Is64BitOperatingSystem == true)
                 {
@@ -102,7 +103,7 @@ namespace os_collect_stats_win
                 //Copies all the contents from the path iisAcessLogsPath, including contents in subfolder
                 fsHelper.DirectoryCopy(iisAccessLogsPath, Path.Combine(_tempFolderPath, "IISAccessLogs"), true);
                 
-                Console.WriteLine("Retrieved IIS Access logs");
+                Console.Write("DONE");
             }
             catch (Exception e)
             {
@@ -118,14 +119,14 @@ namespace os_collect_stats_win
             // Fetch Registry key values and subkeys values
             try
             {
-                Console.WriteLine("Exporting Registry information...");
+                Console.Write("Exporting Registry information...");
 
-                RegistryClass.RegistryCopy(_sslProtocolsRegistryPath, Path.Combine(registryInformationPath, "SSLProtocols.txt"), true, true);
-                RegistryClass.RegistryCopy(_netFrameworkRegistryPath, Path.Combine(registryInformationPath, "NetFramework.txt"), true, true);
-                RegistryClass.RegistryCopy(_iisRegistryPath, Path.Combine(registryInformationPath, "IIS.txt"), true, true);
-                RegistryClass.RegistryCopy(_outSystemsPlatformRegistryPath, Path.Combine(registryInformationPath, "OutSystemsPlatform.txt"), true, true);
+                RegistryClass.RegistryCopy(_sslProtocolsRegistryPath, Path.Combine(registryInformationPath, "SSLProtocols.txt"), true);
+                RegistryClass.RegistryCopy(_netFrameworkRegistryPath, Path.Combine(registryInformationPath, "NetFramework.txt"), true);
+                RegistryClass.RegistryCopy(_iisRegistryPath, Path.Combine(registryInformationPath, "IIS.txt"), true);
+                RegistryClass.RegistryCopy(_outSystemsPlatformRegistryPath, Path.Combine(registryInformationPath, "OutSystemsPlatform.txt"), true);
 
-                Console.Write("DONE");
+                Console.WriteLine("DONE");
             }
             
             catch (Exception e)
@@ -233,6 +234,9 @@ namespace os_collect_stats_win
                 { "pagefile", new CmdLineCommand("wmic pagefile",Path.Combine(_tempFolderPath, "pagefile")) },
                 { "partition", new CmdLineCommand("wmic partition",Path.Combine(_tempFolderPath, "partition")) },
                 { "startup", new CmdLineCommand("wmic startup",Path.Combine(_tempFolderPath, "startup")) },
+                { "app_evtx", new CmdLineCommand("WEVTUtil export-log Application " + Path.Combine(_tempFolderPath, "Application.evtx")) },
+                { "sys_evtx", new CmdLineCommand("WEVTUtil export-log System " + Path.Combine(_tempFolderPath, "System.evtx")) },
+                { "sec_evtx", new CmdLineCommand("WEVTUtil export-log Security " + Path.Combine(_tempFolderPath, "Security.evtx")) },
             };
 
             foreach (KeyValuePair<string, CmdLineCommand> commandEntry in commands)
