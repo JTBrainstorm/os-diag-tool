@@ -12,10 +12,9 @@ namespace os_collect_stats_win
     class Program
     {
         private static string _windir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
-        private static string _tempFolderPath = Path.Combine(Directory.GetCurrentDirectory(),"collect_stats"); 
+        private static string _tempFolderPath = Path.Combine(Directory.GetCurrentDirectory(),"collect_data"); 
         private static string _targetZipFile = Path.Combine(Directory.GetCurrentDirectory(), "outsystems_data_" + DateTimeToTimestamp(DateTime.Now) + ".zip");
         private static string _osInstallationFolder = @"c:\Program Files\OutSystems\Platform Server";
-        //private static string _osLogFolder = Path.Combine(_osInstallationFolder, "logs");
         private static string _osServerRegistry = @"SOFTWARE\OutSystems\Installer\Server";
         private static string _sslProtocolsRegistryPath = @"SYSTEM\CurrentControlSet\Control\SecurityProviders\Schannel\Protocols";
         private static string _iisRegistryPath = @"SOFTWARE\Microsoft\InetStp";
@@ -23,7 +22,6 @@ namespace os_collect_stats_win
         private static string _outSystemsPlatformRegistryPath = @"SOFTWARE\OutSystems";
         private static string _iisApplicationHostPath = Path.Combine(_windir, @"system32\inetsrv\config\applicationHost.config");
         private static string _machineConfigPath = Path.Combine(_windir, @"Microsoft.NET\Framework64\v4.0.30319\CONFIG\machine.config");
-
 
         static void Main(string[] args)
         {
@@ -48,8 +46,8 @@ namespace os_collect_stats_win
             {
                 Console.WriteLine(" * Unable to find OutSystems Platform Server Installation... * ");
                 Console.WriteLine(e.ToString());
-                //WriteExitLines();
-                //return;
+                WriteExitLines();
+                return;
             }
 
             Object obj = RegistryClass.GetRegistryValue(_osServerRegistry, ""); // The "Defaut" values are empty strings.
@@ -134,8 +132,11 @@ namespace os_collect_stats_win
                 Console.WriteLine("Failed to export Registry");
             }
 
-
+            // Collect information from cmd commands
             ExecuteCommands();
+
+            // Collect thread dumps - TODO ask y/n
+            CollectThreadDumps();
 
             // Generate zip file
             Console.WriteLine();
@@ -243,6 +244,44 @@ namespace os_collect_stats_win
             {
                 Console.Write("Getting {0}...", commandEntry.Key);
                 commandEntry.Value.Execute();
+                Console.WriteLine("DONE");
+            }
+        }
+
+        private static void CollectThreadDumps()
+        {
+            string threadDumpsPath = Path.Combine(_tempFolderPath, "thread_dumps");
+            Directory.CreateDirectory(threadDumpsPath);
+
+            ThreadDumpCollector dc = new ThreadDumpCollector(5000);
+            Dictionary<string, string> processDict = new Dictionary<string, string>{
+                { "log_service", "LogServer.exe" },
+                { "deployment_service", "DeployService.exe" },
+                { "deployment_controller", "CompilerService.exe" },
+                { "scheduler", "Scheduler.exe" },
+                { "w3wp", "w3wp.exe" }
+            };
+
+            List<string> processList = new List<string> { "w3wp", "deployment_controller", "deployment_service", "scheduler", "log_service" };
+
+            foreach (string processTag in processList)
+            {
+                Console.Write("Collecting " + processTag + " thread dumps... ");
+
+                string processName = processDict[processTag];
+                List<int> pids = dc.GetProcessIdsByName(processName);
+
+                foreach (int pid in dc.GetProcessIdsByFilename(processName))
+                {
+                    string pidSuf = pids.Count > 1 ? "_" + pid : "";
+                    string filename = "threads_" + processTag + pidSuf + "_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".log";
+                    using (TextWriter writer = new StreamWriter(File.Create(Path.Combine(threadDumpsPath, filename))))
+                    {
+                        writer.WriteLine(DateTime.Now.ToString());
+                        writer.WriteLine(dc.GetThreadDump(pid));
+                    }
+                }
+
                 Console.WriteLine("DONE");
             }
         }
