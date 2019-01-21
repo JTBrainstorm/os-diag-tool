@@ -238,6 +238,7 @@ namespace os_collect_stats_win
                 { "app_evtx", new CmdLineCommand("WEVTUtil export-log Application " + Path.Combine(_tempFolderPath, "Application.evtx")) },
                 { "sys_evtx", new CmdLineCommand("WEVTUtil export-log System " + Path.Combine(_tempFolderPath, "System.evtx")) },
                 { "sec_evtx", new CmdLineCommand("WEVTUtil export-log Security " + Path.Combine(_tempFolderPath, "Security.evtx")) },
+                { "mem_dump", new CmdLineCommand("procdump64 w3wp.exe -ma " + Path.Combine(_tempFolderPath, "w3wp.dmp")) }
             };
 
             foreach (KeyValuePair<string, CmdLineCommand> commandEntry in commands)
