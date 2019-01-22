@@ -1,0 +1,9 @@
+C:\Users\rca\Desktop\os-diag-tool\os_collect_stats_win\bin\x64\Release\os_collect_stats_win.exe.config
+C:\Users\rca\Desktop\os-diag-tool\os_collect_stats_win\bin\x64\Release\os_collect_stats_win.exe
+C:\Users\rca\Desktop\os-diag-tool\os_collect_stats_win\bin\x64\Release\os_collect_stats_win.pdb
+C:\Users\rca\Desktop\os-diag-tool\os_collect_stats_win\bin\x64\Release\ICSharpCode.SharpZipLib.dll
+C:\Users\rca\Desktop\os-diag-tool\os_collect_stats_win\bin\x64\Release\Microsoft.Diagnostics.Runtime.dll
+C:\Users\rca\Desktop\os-diag-tool\os_collect_stats_win\bin\x64\Release\Microsoft.Diagnostics.Runtime.pdb
+C:\Users\rca\Desktop\os-diag-tool\os_collect_stats_win\bin\x64\Release\Microsoft.Diagnostics.Runtime.xml
+C:\Users\rca\Desktop\os-diag-tool\os_collect_stats_win\obj\x64\Release\os_collect_stats_win.exe
+C:\Users\rca\Desktop\os-diag-tool\os_collect_stats_win\obj\x64\Release\os_collect_stats_win.pdb

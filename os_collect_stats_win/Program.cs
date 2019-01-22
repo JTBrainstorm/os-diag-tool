@@ -132,11 +132,16 @@ namespace os_collect_stats_win
                 Console.WriteLine("Failed to export Registry");
             }
 
-            // Collect information from cmd commands
-            ExecuteCommands();
-
             // Collect thread dumps - TODO ask y/n
             CollectThreadDumps();
+
+            Console.Write("Do you want to collect memory dumps? (y/N) ");
+            string mem_dump_input = Console.ReadLine();
+
+            if (string.Equals(mem_dump_input, "y"))
+            {
+                CollectMemoryDumps();
+            }
 
             // Generate zip file
             Console.WriteLine();
@@ -237,8 +242,7 @@ namespace os_collect_stats_win
                 { "startup", new CmdLineCommand("wmic startup",Path.Combine(_tempFolderPath, "startup")) },
                 { "app_evtx", new CmdLineCommand("WEVTUtil export-log Application " + Path.Combine(_tempFolderPath, "Application.evtx")) },
                 { "sys_evtx", new CmdLineCommand("WEVTUtil export-log System " + Path.Combine(_tempFolderPath, "System.evtx")) },
-                { "sec_evtx", new CmdLineCommand("WEVTUtil export-log Security " + Path.Combine(_tempFolderPath, "Security.evtx")) },
-                { "mem_dump", new CmdLineCommand("procdump64 w3wp.exe -ma " + Path.Combine(_tempFolderPath, "w3wp.dmp")) }
+                { "sec_evtx", new CmdLineCommand("WEVTUtil export-log Security " + Path.Combine(_tempFolderPath, "Security.evtx")) }
             };
 
             foreach (KeyValuePair<string, CmdLineCommand> commandEntry in commands)
@@ -251,7 +255,7 @@ namespace os_collect_stats_win
 
         private static void CollectThreadDumps()
         {
-            string threadDumpsPath = Path.Combine(_tempFolderPath, "thread_dumps");
+            string threadDumpsPath = Path.Combine(_tempFolderPath, "ThreadDumps");
             Directory.CreateDirectory(threadDumpsPath);
 
             ThreadDumpCollector dc = new ThreadDumpCollector(5000);
@@ -281,6 +285,45 @@ namespace os_collect_stats_win
                         writer.WriteLine(DateTime.Now.ToString());
                         writer.WriteLine(dc.GetThreadDump(pid));
                     }
+                }
+
+                Console.WriteLine("DONE");
+            }
+        }
+
+        private static void CollectMemoryDumps()
+        {
+            string memoryDumpsPath = Path.Combine(_tempFolderPath, "MemoryDumps");
+            Directory.CreateDirectory(memoryDumpsPath);
+
+            CmdLineCommand command;
+
+            ThreadDumpCollector dc = new ThreadDumpCollector(5000);
+            Dictionary<string, string> processDict = new Dictionary<string, string>{
+                { "log_service", "LogServer.exe" },
+                { "deployment_service", "DeployService.exe" },
+                { "deployment_controller", "CompilerService.exe" },
+                { "scheduler", "Scheduler.exe" },
+                { "w3wp", "w3wp.exe" }
+            };
+
+            List<string> processList = new List<string> { "w3wp", "deployment_controller", "deployment_service", "scheduler", "log_service" };
+
+            foreach (string processTag in processList)
+            {
+                Console.Write("Collecting " + processTag + " memory dumps... ");
+
+                string processName = processDict[processTag];
+                List<int> pids = dc.GetProcessIdsByName(processName);
+
+                foreach (int pid in dc.GetProcessIdsByFilename(processName))
+                {
+                    string pidSuf = pids.Count > 1 ? "_" + pid : "";
+                    string filename = "memdump_" + processTag + pidSuf + "_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".dmp";
+
+                    // Console.Write(" | procdump64.exe - ma " + pid + " " + Path.Combine(_tempFolderPath, filename) + " |"); // For debug purposes only!
+                    command = new CmdLineCommand("procdump64.exe -ma " + pid + " " + Path.Combine(memoryDumpsPath, filename));
+                    command.Execute();
                 }
 
                 Console.WriteLine("DONE");

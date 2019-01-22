@@ -7,3 +7,12 @@ C:\Users\jat\Source\Repos\os-diag-tool\os_collect_stats_win\bin\x64\Debug\Micros
 C:\Users\jat\Source\Repos\os-diag-tool\os_collect_stats_win\bin\x64\Debug\Microsoft.Diagnostics.Runtime.xml
 C:\Users\jat\Source\Repos\os-diag-tool\os_collect_stats_win\obj\x64\Debug\os_collect_stats_win.exe
 C:\Users\jat\Source\Repos\os-diag-tool\os_collect_stats_win\obj\x64\Debug\os_collect_stats_win.pdb
+C:\Users\rca\Desktop\os-diag-tool\os_collect_stats_win\bin\x64\Debug\os_collect_stats_win.exe.config
+C:\Users\rca\Desktop\os-diag-tool\os_collect_stats_win\bin\x64\Debug\os_collect_stats_win.exe
+C:\Users\rca\Desktop\os-diag-tool\os_collect_stats_win\bin\x64\Debug\os_collect_stats_win.pdb
+C:\Users\rca\Desktop\os-diag-tool\os_collect_stats_win\bin\x64\Debug\ICSharpCode.SharpZipLib.dll
+C:\Users\rca\Desktop\os-diag-tool\os_collect_stats_win\bin\x64\Debug\Microsoft.Diagnostics.Runtime.dll
+C:\Users\rca\Desktop\os-diag-tool\os_collect_stats_win\bin\x64\Debug\Microsoft.Diagnostics.Runtime.pdb
+C:\Users\rca\Desktop\os-diag-tool\os_collect_stats_win\bin\x64\Debug\Microsoft.Diagnostics.Runtime.xml
+C:\Users\rca\Desktop\os-diag-tool\os_collect_stats_win\obj\x64\Debug\os_collect_stats_win.exe
+C:\Users\rca\Desktop\os-diag-tool\os_collect_stats_win\obj\x64\Debug\os_collect_stats_win.pdb
