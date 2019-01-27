@@ -22,6 +22,9 @@ namespace os_collect_stats_win
         private static string _outSystemsPlatformRegistryPath = @"SOFTWARE\OutSystems";
         private static string _iisApplicationHostPath = Path.Combine(_windir, @"system32\inetsrv\config\applicationHost.config");
         private static string _machineConfigPath = Path.Combine(_windir, @"Microsoft.NET\Framework64\v4.0.30319\CONFIG\machine.config");
+        private static string _evtVwrLogsDest = Path.Combine(_tempFolderPath, "EventViewerLogs");
+        private static string _osPlatFilesDest = Path.Combine(_tempFolderPath, "OSPlatformFiles");
+        private static string _windowsInfoDest = Path.Combine(_tempFolderPath, "WindowsInformation");
 
         static void Main(string[] args)
         {
@@ -58,23 +61,27 @@ namespace os_collect_stats_win
                 Directory.Delete(_tempFolderPath, true);
             }
 
-            // Create temporary directory
+            // Create temporary directory and respective subdirectories
             Directory.CreateDirectory(_tempFolderPath);
+            Directory.CreateDirectory(_evtVwrLogsDest);
+            Directory.CreateDirectory(_osPlatFilesDest);
 
             // Process copy files
             CopyAllFiles();
 
             // Generate Event Viewer Logs
             Console.Write("Generating log files... ");
-            welHelper.GenerateLogFiles(_tempFolderPath);
+            welHelper.GenerateLogFiles(Path.Combine(_tempFolderPath, _evtVwrLogsDest));
             Console.WriteLine("DONE");
+
+            ExecuteCommands();
 
             //Retrieving IIS access logs
             try
             {
-                Console.WriteLine("Retrieving IIS Access logs... ");
+                Console.Write("Retrieving IIS Access logs... ");
                 // Loading Xml text from the file. Note: 32 bit processes will redirect \System32 to \SysWOW64: http://www.samlogic.net/articles/sysnative-folder-64-bit-windows.htm
-                if (Environment.Is64BitOperatingSystem == true)
+                if (Environment.Is64BitOperatingSystem == false)
                 {
                     _iisApplicationHostPath = _iisApplicationHostPath.Replace("system32", "Sysnative");
                 }
@@ -92,7 +99,7 @@ namespace os_collect_stats_win
                 if (iisAccessLogsPath.Contains("%systemdrive%"))
                 {
                     iisAccessLogsPath = iisAccessLogsPath.Replace("%systemdrive%\\", Path.GetPathRoot(Environment.SystemDirectory));
-                    if ((Environment.Is64BitOperatingSystem == true) && iisAccessLogsPath.Contains("system32"))
+                    if ((Environment.Is64BitOperatingSystem == false) && iisAccessLogsPath.Contains("system32"))
                     {
                         iisAccessLogsPath = iisAccessLogsPath.Replace("system32", "Sysnative");
                     }
@@ -101,7 +108,7 @@ namespace os_collect_stats_win
                 //Copies all the contents from the path iisAcessLogsPath, including contents in subfolder
                 fsHelper.DirectoryCopy(iisAccessLogsPath, Path.Combine(_tempFolderPath, "IISAccessLogs"), true);
                 
-                Console.Write("DONE");
+                Console.WriteLine("DONE");
             }
             catch (Exception e)
             {
@@ -214,7 +221,7 @@ namespace os_collect_stats_win
                 if (File.Exists(filepath))
                 {
                     String realFilename = Path.GetFileName(filepath);
-                    File.Copy(filepath, Path.Combine(_tempFolderPath, realFilename));
+                    File.Copy(filepath, Path.Combine(_osPlatFilesDest, realFilename));
 
                     Console.WriteLine("DONE");
                 }
@@ -229,20 +236,20 @@ namespace os_collect_stats_win
         {
             IDictionary<string, CmdLineCommand> commands = new Dictionary<string, CmdLineCommand>
             {
-                { "dir_outsystems", new CmdLineCommand(string.Format("dir /s /a \"{0}\"", _osInstallationFolder),Path.Combine(_tempFolderPath, "dir_outsystems")) },
-                { "tasklist", new CmdLineCommand("tasklist /v",Path.Combine(_tempFolderPath, "tasklist")) },
-                { "cpu_info", new CmdLineCommand("wmic cpu",Path.Combine(_tempFolderPath, "cpu_info")) },
-                { "memory_info", new CmdLineCommand("wmic memphysical",Path.Combine(_tempFolderPath, "mem_info")) },
-                { "mem_cache", new CmdLineCommand("wmic memcache",Path.Combine(_tempFolderPath, "mem_cache")) },
-                { "net_protocol", new CmdLineCommand("wmic netprotocol",Path.Combine(_tempFolderPath, "net_protocol")) },
-                { "env_info", new CmdLineCommand("wmic environment",Path.Combine(_tempFolderPath, "env_info")) },
-                { "os_info", new CmdLineCommand("wmic os",Path.Combine(_tempFolderPath, "os_info")) },
-                { "pagefile", new CmdLineCommand("wmic pagefile",Path.Combine(_tempFolderPath, "pagefile")) },
-                { "partition", new CmdLineCommand("wmic partition",Path.Combine(_tempFolderPath, "partition")) },
-                { "startup", new CmdLineCommand("wmic startup",Path.Combine(_tempFolderPath, "startup")) },
-                { "app_evtx", new CmdLineCommand("WEVTUtil export-log Application " + Path.Combine(_tempFolderPath, "Application.evtx")) },
-                { "sys_evtx", new CmdLineCommand("WEVTUtil export-log System " + Path.Combine(_tempFolderPath, "System.evtx")) },
-                { "sec_evtx", new CmdLineCommand("WEVTUtil export-log Security " + Path.Combine(_tempFolderPath, "Security.evtx")) }
+                { "dir_outsystems", new CmdLineCommand(string.Format("dir /s /a \"{0}\"", _osInstallationFolder), _windowsInfoDest) },
+                { "tasklist", new CmdLineCommand("tasklist /v", _windowsInfoDest) },
+                { "cpu_info", new CmdLineCommand("wmic cpu", _windowsInfoDest) },
+                { "memory_info", new CmdLineCommand("wmic memphysical", _windowsInfoDest) },
+                { "mem_cache", new CmdLineCommand("wmic memcache", _windowsInfoDest) },
+                { "net_protocol", new CmdLineCommand("wmic netprotocol", _windowsInfoDest) },
+                { "env_info", new CmdLineCommand("wmic environment", _windowsInfoDest) },
+                { "os_info", new CmdLineCommand("wmic os", _windowsInfoDest) },
+                { "pagefile", new CmdLineCommand("wmic pagefile", _windowsInfoDest) },
+                { "partition", new CmdLineCommand("wmic partition", _windowsInfoDest) },
+                { "startup", new CmdLineCommand("wmic startup", _windowsInfoDest) },
+                { "app_evtx", new CmdLineCommand("WEVTUtil export-log Application " + Path.Combine(_tempFolderPath, _evtVwrLogsDest + @"\Application.evtx")) },
+                { "sys_evtx", new CmdLineCommand("WEVTUtil export-log System " + Path.Combine(_tempFolderPath, _evtVwrLogsDest + @"\System.evtx")) },
+                { "sec_evtx", new CmdLineCommand("WEVTUtil export-log Security " + Path.Combine(_tempFolderPath, _evtVwrLogsDest + @"\Security.evtx")) }
             };
 
             foreach (KeyValuePair<string, CmdLineCommand> commandEntry in commands)
