@@ -25,6 +25,7 @@ namespace os_collect_stats_win
         private static string _evtVwrLogsDest = Path.Combine(_tempFolderPath, "EventViewerLogs");
         private static string _osPlatFilesDest = Path.Combine(_tempFolderPath, "OSPlatformFiles");
         private static string _windowsInfoDest = Path.Combine(_tempFolderPath, "WindowsInformation");
+        private static string _errorDumpFile = Path.Combine(_tempFolderPath, "ErrorDump.txt");
 
         static void Main(string[] args)
         {
@@ -36,8 +37,22 @@ namespace os_collect_stats_win
             CmdHelper cmdHelper = new CmdHelper();
             WindowsEventLogHelper welHelper = new WindowsEventLogHelper();
 
+            // Delete temporary directory and all contents if it already exists (e.g.: error runs)
+            if (Directory.Exists(_tempFolderPath))
+            {
+                Directory.Delete(_tempFolderPath, true);
+            }
+
+            // Create temporary directory and respective subdirectories
+            Directory.CreateDirectory(_tempFolderPath);
+            Directory.CreateDirectory(_evtVwrLogsDest);
+            Directory.CreateDirectory(_osPlatFilesDest);
+
+            // Create error dump file to log all exceptions during script execution
+            using (var errorTxtFile = File.Create(_errorDumpFile));
+
             // Finding Installation folder
-            try
+                try
             {
                 Console.WriteLine("Finding OutSystems Platform Installation Path...");
                 RegistryKey OSPlatformInstaller = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(_osServerRegistry);
@@ -50,21 +65,11 @@ namespace os_collect_stats_win
                 Console.WriteLine(" * Unable to find OutSystems Platform Server Installation... * ");
                 Console.WriteLine(e.ToString());
                 WriteExitLines();
+                File.AppendAllText(_errorDumpFile, " * Unable to find OutSystems Platform Server Installation... * " + e.Message + Environment.NewLine);
                 return;
             }
 
             Object obj = RegistryClass.GetRegistryValue(_osServerRegistry, ""); // The "Defaut" values are empty strings.
-
-            // Delete temporary directory and all contents if it already exists (e.g.: error runs)
-            if (Directory.Exists(_tempFolderPath))
-            {
-                Directory.Delete(_tempFolderPath, true);
-            }
-
-            // Create temporary directory and respective subdirectories
-            Directory.CreateDirectory(_tempFolderPath);
-            Directory.CreateDirectory(_evtVwrLogsDest);
-            Directory.CreateDirectory(_osPlatFilesDest);
 
             // Process copy files
             CopyAllFiles();
@@ -113,6 +118,7 @@ namespace os_collect_stats_win
             catch (Exception e)
             {
                 Console.WriteLine("Attempted to retrieve IIS Access logs but failed..." + e.Message);
+                File.AppendAllText(_errorDumpFile, "Attempted to retrieve IIS Access logs but failed..." + e.Message + Environment.NewLine);
             }
 
             // Export Registry information
@@ -137,6 +143,7 @@ namespace os_collect_stats_win
             catch (Exception e)
             {
                 Console.WriteLine("Failed to export Registry");
+                File.AppendAllText(_errorDumpFile, "Failed to export Registry..." + e.Message + Environment.NewLine);
             }
 
             // Collect thread dumps - TODO ask y/n
