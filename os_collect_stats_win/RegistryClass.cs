@@ -33,6 +33,7 @@ namespace os_collect_stats_win
             return obj;
         }
 
+        // Use this function to copy the values of a registry path. Set the getSubKeys to true if you want all the values of subpaths 
         public static void RegistryCopy(string registryPath, string destPath, bool getSubKeys, bool isRootCall = true)
         {
             if (isRootCall)

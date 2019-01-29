@@ -69,7 +69,9 @@ namespace os_collect_stats_win
 
                 _isFileLoaded = true;
             }
-            catch (Exception e) { }
+            catch (Exception e) {
+                FileLogger.LogError("Attempted to load OS Configuration file but failed:", e.Message);
+            }
         }
 
         // Obtain the location of the service log file

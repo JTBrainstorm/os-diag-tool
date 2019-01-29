@@ -45,6 +45,7 @@ namespace os_collect_stats_win
             zip.CreateZip(targetZipFilepath, sourceDirectory, isRecursive, "");
         }
 
+        // Use this function to copy all the contents of a path. Set the copySubDirs to True if you want to copy as well all subfolders contents
         public void DirectoryCopy(string sourceDirName, string destDirName, bool copySubDirs)
         {
             // Get the subdirectories for the specified directory.

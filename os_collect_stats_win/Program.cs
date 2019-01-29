@@ -65,7 +65,7 @@ namespace os_collect_stats_win
                 Console.WriteLine(" * Unable to find OutSystems Platform Server Installation... * ");
                 Console.WriteLine(e.ToString());
                 WriteExitLines();
-                File.AppendAllText(_errorDumpFile, " * Unable to find OutSystems Platform Server Installation... * " + e.Message + Environment.NewLine);
+                FileLogger.LogError(" * Unable to find OutSystems Platform Server Installation... * ", e.Message);
                 return;
             }
 
@@ -118,7 +118,7 @@ namespace os_collect_stats_win
             catch (Exception e)
             {
                 Console.WriteLine("Attempted to retrieve IIS Access logs but failed..." + e.Message);
-                File.AppendAllText(_errorDumpFile, "Attempted to retrieve IIS Access logs but failed..." + e.Message + Environment.NewLine);
+                FileLogger.LogError("Attempted to retrieve IIS Access logs but failed...", e.Message);
             }
 
             // Export Registry information
@@ -143,7 +143,7 @@ namespace os_collect_stats_win
             catch (Exception e)
             {
                 Console.WriteLine("Failed to export Registry");
-                File.AppendAllText(_errorDumpFile, "Failed to export Registry..." + e.Message + Environment.NewLine);
+                FileLogger.LogError("Failed to export Registry:", e.Message);
             }
 
             // Collect thread dumps - TODO ask y/n
