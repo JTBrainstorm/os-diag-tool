@@ -47,6 +47,7 @@ namespace os_collect_stats_win
             Directory.CreateDirectory(_tempFolderPath);
             Directory.CreateDirectory(_evtVwrLogsDest);
             Directory.CreateDirectory(_osPlatFilesDest);
+            Directory.CreateDirectory(_windowsInfoDest);
 
             // Create error dump file to log all exceptions during script execution
             using (var errorTxtFile = File.Create(_errorDumpFile));
@@ -243,17 +244,17 @@ namespace os_collect_stats_win
         {
             IDictionary<string, CmdLineCommand> commands = new Dictionary<string, CmdLineCommand>
             {
-                { "dir_outsystems", new CmdLineCommand(string.Format("dir /s /a \"{0}\"", _osInstallationFolder), _windowsInfoDest) },
-                { "tasklist", new CmdLineCommand("tasklist /v", _windowsInfoDest) },
-                { "cpu_info", new CmdLineCommand("wmic cpu", _windowsInfoDest) },
-                { "memory_info", new CmdLineCommand("wmic memphysical", _windowsInfoDest) },
-                { "mem_cache", new CmdLineCommand("wmic memcache", _windowsInfoDest) },
-                { "net_protocol", new CmdLineCommand("wmic netprotocol", _windowsInfoDest) },
-                { "env_info", new CmdLineCommand("wmic environment", _windowsInfoDest) },
-                { "os_info", new CmdLineCommand("wmic os", _windowsInfoDest) },
-                { "pagefile", new CmdLineCommand("wmic pagefile", _windowsInfoDest) },
-                { "partition", new CmdLineCommand("wmic partition", _windowsInfoDest) },
-                { "startup", new CmdLineCommand("wmic startup", _windowsInfoDest) },
+                { "dir_outsystems", new CmdLineCommand(string.Format("dir /s /a \"{0}\"", _osInstallationFolder), Path.Combine(_windowsInfoDest, "dir_outsystems")) },
+                { "tasklist", new CmdLineCommand("tasklist /v", Path.Combine(_windowsInfoDest, "tasklist")) },
+                { "cpu_info", new CmdLineCommand("wmic cpu", Path.Combine(_windowsInfoDest, "cpu_info")) },
+                { "memory_info", new CmdLineCommand("wmic memphysical", Path.Combine(_windowsInfoDest, "memory_info")) },
+                { "mem_cache", new CmdLineCommand("wmic memcache", Path.Combine(_windowsInfoDest, "mem_cache")) },
+                { "net_protocol", new CmdLineCommand("wmic netprotocol", Path.Combine(_windowsInfoDest, "net_protocol")) },
+                { "env_info", new CmdLineCommand("wmic environment", Path.Combine(_windowsInfoDest, "env_info")) },
+                { "os_info", new CmdLineCommand("wmic os", Path.Combine(_windowsInfoDest, "os_info")) },
+                { "pagefile", new CmdLineCommand("wmic pagefile", Path.Combine(_windowsInfoDest, "pagefile")) },
+                { "partition", new CmdLineCommand("wmic partition", Path.Combine(_windowsInfoDest, "partition")) },
+                { "startup", new CmdLineCommand("wmic startup", Path.Combine(_windowsInfoDest, "startup")) },
                 { "app_evtx", new CmdLineCommand("WEVTUtil export-log Application " + Path.Combine(_tempFolderPath, _evtVwrLogsDest + @"\Application.evtx")) },
                 { "sys_evtx", new CmdLineCommand("WEVTUtil export-log System " + Path.Combine(_tempFolderPath, _evtVwrLogsDest + @"\System.evtx")) },
                 { "sec_evtx", new CmdLineCommand("WEVTUtil export-log Security " + Path.Combine(_tempFolderPath, _evtVwrLogsDest + @"\Security.evtx")) }
