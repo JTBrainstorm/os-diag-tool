@@ -147,32 +147,15 @@ namespace os_collect_stats_win
                 FileLogger.LogError("Failed to export Registry:", e.Message);
             }
 
-            // Collect thread dumps -  ask y/n
+            // Collect thread dumps - TODO ask y/n
             CollectThreadDumps();
 
-            Console.Write("Do you want to collect memory dumps [N]? (y/N) ");
-            string mem_dump_input = Console.ReadLine();
-            mem_dump_input = mem_dump_input.ToLower();
+            Console.Write("Do you want to collect memory dumps? (y/N) ");
+            string mem_dump_input = Console.ReadLine().ToLower();
 
-            int caseSwitch = 2;
             if (string.Equals(mem_dump_input, "y"))
             {
-                caseSwitch = 1;
-            }
-            else if (string.Equals(mem_dump_input, "n") || string.Equals(mem_dump_input, ""))
-            {
-                caseSwitch = 2;
-            }
-
-            switch (caseSwitch)
-            {
-                case 1:
-                    CollectMemoryDumps();
-                    break;
-
-                case 2:
-                    Console.Write("Skipping Memory Dumps...");
-                    break;
+                CollectMemoryDumps();
             }
 
             // Generate zip file
@@ -349,8 +332,8 @@ namespace os_collect_stats_win
                     string pidSuf = pids.Count > 1 ? "_" + pid : "";
                     string filename = "memdump_" + processTag + pidSuf + "_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".dmp";
 
-                    Console.Write(" | procdump64.exe - ma " + pid + " " + Path.Combine(_tempFolderPath, filename) + " |"); // For debug purposes only!
-                    command = new CmdLineCommand("procdump64.exe -ma " + pid + " " + Path.Combine(memoryDumpsPath, filename));
+                    Console.Write(" PID " + pid); 
+                    command = new CmdLineCommand("procdump64.exe -ma " + pid + " /accepteula " + Path.Combine(memoryDumpsPath, filename));
                     command.Execute();
                 }
 
