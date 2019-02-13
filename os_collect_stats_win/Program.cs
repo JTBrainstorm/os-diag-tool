@@ -332,7 +332,7 @@ namespace os_collect_stats_win
                     string pidSuf = pids.Count > 1 ? "_" + pid : "";
                     string filename = "memdump_" + processTag + pidSuf + "_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".dmp";
 
-                    Console.Write(" PID " + pid); 
+                    Console.Write(" - PID " + pid + " - " ); 
                     command = new CmdLineCommand("procdump64.exe -ma " + pid + " /accepteula " + Path.Combine(memoryDumpsPath, filename));
                     command.Execute();
                 }
