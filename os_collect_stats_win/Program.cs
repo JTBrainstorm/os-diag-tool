@@ -25,7 +25,7 @@ namespace os_collect_stats_win
         private static string _evtVwrLogsDest = Path.Combine(_tempFolderPath, "EventViewerLogs");
         private static string _osPlatFilesDest = Path.Combine(_tempFolderPath, "OSPlatformFiles");
         private static string _windowsInfoDest = Path.Combine(_tempFolderPath, "WindowsInformation");
-        private static string _errorDumpFile = Path.Combine(_tempFolderPath, "ErrorDump.txt");
+        private static string _errorDumpFile = Path.Combine(_tempFolderPath, "OSTraces.txt");
 
         static void Main(string[] args)
         {
@@ -55,18 +55,16 @@ namespace os_collect_stats_win
             // Finding Installation folder
                 try
             {
-                Console.WriteLine("Finding OutSystems Platform Installation Path...");
+                FileLogger.TraceLog("Finding OutSystems Platform Installation Path...");
                 RegistryKey OSPlatformInstaller = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(_osServerRegistry);
                 
                 _osInstallationFolder = (string) OSPlatformInstaller.GetValue("");
-                Console.WriteLine("Found it on: \"{0}\"", _osInstallationFolder);
+                FileLogger.TraceLog("Found it on: " + _osInstallationFolder, true);
             }
             catch (Exception e)
             {
-                Console.WriteLine(" * Unable to find OutSystems Platform Server Installation... * ");
-                Console.WriteLine(e.ToString());
-                WriteExitLines();
                 FileLogger.LogError(" * Unable to find OutSystems Platform Server Installation... * ", e.Message);
+                WriteExitLines();
                 return;
             }
 
@@ -76,16 +74,16 @@ namespace os_collect_stats_win
             CopyAllFiles();
 
             // Generate Event Viewer Logs
-            Console.Write("Generating log files... ");
+            FileLogger.TraceLog("Generating log files... ");
             welHelper.GenerateLogFiles(Path.Combine(_tempFolderPath, _evtVwrLogsDest));
-            Console.WriteLine("DONE");
+            FileLogger.TraceLog("DONE", true);
 
             ExecuteCommands();
 
             //Retrieving IIS access logs
             try
             {
-                Console.Write("Retrieving IIS Access logs... ");
+                FileLogger.TraceLog("Retrieving IIS Access logs... ");
                 // Loading Xml text from the file. Note: 32 bit processes will redirect \System32 to \SysWOW64: http://www.samlogic.net/articles/sysnative-folder-64-bit-windows.htm
                 if (Environment.Is64BitOperatingSystem == false)
                 {
@@ -113,12 +111,11 @@ namespace os_collect_stats_win
 
                 //Copies all the contents from the path iisAcessLogsPath, including contents in subfolder
                 fsHelper.DirectoryCopy(iisAccessLogsPath, Path.Combine(_tempFolderPath, "IISAccessLogs"), true);
-                
-                Console.WriteLine("DONE");
+
+                FileLogger.TraceLog("DONE", true);
             }
             catch (Exception e)
             {
-                Console.WriteLine("Attempted to retrieve IIS Access logs but failed..." + e.Message);
                 FileLogger.LogError("Attempted to retrieve IIS Access logs but failed...", e.Message);
             }
 
@@ -131,19 +128,18 @@ namespace os_collect_stats_win
             // Fetch Registry key values and subkeys values
             try
             {
-                Console.Write("Exporting Registry information...");
+                FileLogger.TraceLog("Exporting Registry information...");
 
                 RegistryClass.RegistryCopy(_sslProtocolsRegistryPath, Path.Combine(registryInformationPath, "SSLProtocols.txt"), true);
                 RegistryClass.RegistryCopy(_netFrameworkRegistryPath, Path.Combine(registryInformationPath, "NetFramework.txt"), true);
                 RegistryClass.RegistryCopy(_iisRegistryPath, Path.Combine(registryInformationPath, "IIS.txt"), true);
                 RegistryClass.RegistryCopy(_outSystemsPlatformRegistryPath, Path.Combine(registryInformationPath, "OutSystemsPlatform.txt"), true);
 
-                Console.WriteLine("DONE");
+                FileLogger.TraceLog("DONE", true);
             }
             
             catch (Exception e)
             {
-                Console.WriteLine("Failed to export Registry");
                 FileLogger.LogError("Failed to export Registry:", e.Message);
             }
 
@@ -155,12 +151,13 @@ namespace os_collect_stats_win
 
             if (string.Equals(mem_dump_input, "y"))
             {
+                FileLogger.TraceLog("Initiating collection of memory dumps..." + Environment.NewLine);
                 CollectMemoryDumps();
             }
 
             // Generate zip file
             Console.WriteLine();
-            Console.Write("Creating zip file... ");
+            FileLogger.TraceLog("Creating zip file... ");
             fsHelper.CreateZipFromDirectory(_tempFolderPath, _targetZipFile, true);
             Console.WriteLine("DONE");
 
@@ -221,17 +218,17 @@ namespace os_collect_stats_win
                 String filepath = fileEntry.Value;
                 String fileAlias = fileEntry.Key;
 
-                Console.Write("Copying " + fileAlias + "... ");
+                FileLogger.TraceLog("Copying " + fileAlias + "... ");
                 if (File.Exists(filepath))
                 {
                     String realFilename = Path.GetFileName(filepath);
                     File.Copy(filepath, Path.Combine(_osPlatFilesDest, realFilename));
 
-                    Console.WriteLine("DONE");
+                    FileLogger.TraceLog("DONE", true);
                 }
                 else
                 {
-                    Console.WriteLine("FAIL (File does not exist)");
+                    FileLogger.TraceLog("FAIL (File does not exist)", true);
                 }
             }
         }
@@ -258,9 +255,9 @@ namespace os_collect_stats_win
 
             foreach (KeyValuePair<string, CmdLineCommand> commandEntry in commands)
             {
-                Console.Write("Getting {0}...", commandEntry.Key);
+                FileLogger.TraceLog("Getting " + commandEntry.Key + "...");
                 commandEntry.Value.Execute();
-                Console.WriteLine("DONE");
+                FileLogger.TraceLog("DONE" + Environment.NewLine);
             }
         }
 
@@ -282,7 +279,7 @@ namespace os_collect_stats_win
 
             foreach (string processTag in processList)
             {
-                Console.Write("Collecting " + processTag + " thread dumps... ");
+                FileLogger.TraceLog("Collecting " + processTag + " thread dumps... ");
 
                 string processName = processDict[processTag];
                 List<int> pids = dc.GetProcessIdsByName(processName);
@@ -298,7 +295,7 @@ namespace os_collect_stats_win
                     }
                 }
 
-                Console.WriteLine("DONE");
+                FileLogger.TraceLog("DONE", true);
             }
         }
 
@@ -322,7 +319,7 @@ namespace os_collect_stats_win
 
             foreach (string processTag in processList)
             {
-                Console.Write("Collecting " + processTag + " memory dumps... ");
+                FileLogger.TraceLog("Collecting " + processTag + " memory dumps... ");
 
                 string processName = processDict[processTag];
                 List<int> pids = dc.GetProcessIdsByName(processName);
@@ -332,12 +329,12 @@ namespace os_collect_stats_win
                     string pidSuf = pids.Count > 1 ? "_" + pid : "";
                     string filename = "memdump_" + processTag + pidSuf + "_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".dmp";
 
-                    Console.Write(" - PID " + pid + " - " ); 
+                    FileLogger.TraceLog(" - PID " + pid + " - " ); 
                     command = new CmdLineCommand("procdump64.exe -ma " + pid + " /accepteula " + Path.Combine(memoryDumpsPath, filename));
                     command.Execute();
                 }
 
-                Console.WriteLine("DONE");
+                FileLogger.TraceLog("DONE", true);
             }
         }
 

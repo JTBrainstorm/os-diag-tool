@@ -11,12 +11,28 @@ namespace os_collect_stats_win
     public class FileLogger
     {
         private static string _tempFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "collect_data");
-        private static string _errorDumpFile = Path.Combine(_tempFolderPath, "ErrorDump.txt");
+        private static string _errorDumpFile = Path.Combine(_tempFolderPath, "OSTraces.txt");
 
 
         public static void LogError(string customMessage, string errorMessage)
         {
-            File.AppendAllText(_errorDumpFile, DateTime.Now + "\t" + customMessage + "\t" + errorMessage + Environment.NewLine);
+            Console.WriteLine("[ERROR] " + customMessage + ": " + errorMessage);
+            File.AppendAllText(_errorDumpFile, DateTime.Now + "\t" + "[ERROR] \t" + customMessage + "\t" + errorMessage + Environment.NewLine);
+        }
+
+        public static void TraceLog(string traceMessage, bool isTaskFinished = false)
+        {
+            if (isTaskFinished == false)
+            {
+                Console.Write(traceMessage);
+                File.AppendAllText(_errorDumpFile, DateTime.Now + "\t" + traceMessage);
+            }
+            else if (isTaskFinished == true)
+            {
+                Console.WriteLine(traceMessage);
+                File.AppendAllText(_errorDumpFile, traceMessage + Environment.NewLine);
+            }
+
         }
 
     }
