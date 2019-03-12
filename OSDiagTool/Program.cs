@@ -228,7 +228,7 @@ namespace OSDiagTool
                 }
                 else
                 {
-                    FileLogger.TraceLog("FAIL (File does not exist)", true);
+                    FileLogger.TraceLog("(File does not exist)", true);
                 }
             }
         }
